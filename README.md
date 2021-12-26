@@ -117,3 +117,6 @@ list of subnet_ids that the scheduler runs in. Defaults to []. Usually this does
 
 ### resource_name_prefix
 The prefix to apply to resource names. E.g. setting this to `cluster1-` will create the Lambda as `cluster1-aws-scheduler` rather than `aws-schedule`. default = "".
+
+## Authors
+Module created by [Neill Turner](https://github.com/neillturner) (https://github.com/neillturner/terraform-aws-lambda-scheduler) and modified by [Marcel Emmert](https://github.com/echomike80).
