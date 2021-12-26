@@ -1,3 +1,9 @@
+variable "create" {
+  description = "Whether to create all resources"
+  type        = bool
+  default     = true
+}
+
 variable "schedule_expression" {
   default     = "cron(5 * * * ? *)"
   description = "the aws cloudwatch event rule scheule expression that specifies when the scheduler runs. Default is 5 minuts past the hour. for debugging use 'rate(5 minutes)'. See https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html"
@@ -9,8 +15,8 @@ variable "tag" {
 }
 
 variable "schedule_tag_force" {
-  type        = string
-  default     = "false"
+  type        = bool
+  default     = false
   description = "Whether to force the EC2 or RDS instance to have the default schedule tag is no schedule tag exists for the instance."
 }
 
@@ -36,14 +42,14 @@ variable "time" {
 }
 
 variable "ec2_schedule" {
-  type        = string
-  default     = "true"
+  type        = bool
+  default     = true
   description = "Whether to do scheduling for EC2 instances."
 }
 
 variable "rds_schedule" {
-  type        = string
-  default     = "true"
+  type        = bool
+  default     = true
   description = "Whether to do scheduling for RDS instances."
 }
 
@@ -60,6 +66,31 @@ variable "subnet_ids" {
 }
 
 variable "resource_name_prefix" {
+  type        = string
   default     = ""
   description = "a prefix to apply to resource names created by this module."
+}
+
+variable "cloudwatch_event_rule_prefix" {
+  type        = string
+  default     = null
+  description = "a prefix to apply to cloudwatch event rule resources."
+}
+
+variable "iam_role_prefix" {
+  type        = string
+  default     = null
+  description = "a prefix to apply to IAM role resources."
+}
+
+variable "iam_policy_prefix" {
+  type        = string
+  default     = null
+  description = "a prefix to apply to IAM policy resources."
+}
+
+variable "lambda_function_prefix" {
+  type        = string
+  default     = null
+  description = "a prefix to apply to lambda function resources."
 }

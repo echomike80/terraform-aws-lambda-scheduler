@@ -1,6 +1,7 @@
 # Cloudwatch event rule
 resource "aws_cloudwatch_event_rule" "check-scheduler-event" {
-  name                = "${var.resource_name_prefix}check-scheduler-event"
+  count               = var.create ? 1 : 0
+  name                = var.cloudwatch_event_rule_prefix == null ? format("%slambda-scheduler-check-event", var.resource_name_prefix) : format("%s%slambda-scheduler-check-event", var.cloudwatch_event_rule_prefix, var.resource_name_prefix)
   description         = "check-scheduler-event"
   schedule_expression = var.schedule_expression
   depends_on          = [aws_lambda_function.scheduler_lambda]
@@ -8,14 +9,16 @@ resource "aws_cloudwatch_event_rule" "check-scheduler-event" {
 
 # Cloudwatch event target
 resource "aws_cloudwatch_event_target" "check-scheduler-event-lambda-target" {
+  count     = var.create ? 1 : 0
   target_id = "check-scheduler-event-lambda-target"
-  rule      = aws_cloudwatch_event_rule.check-scheduler-event.name
-  arn       = aws_lambda_function.scheduler_lambda.arn
+  rule      = aws_cloudwatch_event_rule.check-scheduler-event[0].name
+  arn       = aws_lambda_function.scheduler_lambda[0].arn
 }
 
 # IAM Role for Lambda function
 resource "aws_iam_role" "scheduler_lambda" {
-  name               = "${var.resource_name_prefix}scheduler_lambda"
+  count              = var.create ? 1 : 0
+  name               = var.iam_role_prefix == null ? format("%slambda-scheduler", var.resource_name_prefix) : format("%s%slambda-scheduler", var.iam_role_prefix, var.resource_name_prefix)
   permissions_boundary = var.permissions_boundary != "" ? var.permissions_boundary : ""
   assume_role_policy = <<EOF
 {
@@ -56,20 +59,23 @@ data "aws_iam_policy_document" "ec2-access-scheduler" {
 }
 
 resource "aws_iam_policy" "ec2-access-scheduler" {
-  name   = "${var.resource_name_prefix}ec2-access-scheduler"
+  count  = var.create ? 1 : 0
+  name   = var.iam_policy_prefix == null ? format("%slambda-scheduler-ec2-access", var.resource_name_prefix) : format("%s%slambda-scheduler-ec2-access", var.iam_policy_prefix, var.resource_name_prefix)
   path   = "/"
   policy = data.aws_iam_policy_document.ec2-access-scheduler.json
 }
 
 resource "aws_iam_role_policy_attachment" "ec2-access-scheduler" {
-  role       = aws_iam_role.scheduler_lambda.name
-  policy_arn = aws_iam_policy.ec2-access-scheduler.arn
+  count      = var.create ? 1 : 0
+  role       = aws_iam_role.scheduler_lambda[0].name
+  policy_arn = aws_iam_policy.ec2-access-scheduler[0].arn
 }
 
 ## create custom role
 
 resource "aws_iam_policy" "scheduler_aws_lambda_basic_execution_role" {
-  name        = "${var.resource_name_prefix}scheduler_aws_lambda_basic_execution_role"
+  count       = var.create ? 1 : 0
+  name        = var.iam_policy_prefix == null ? format("%slambda-scheduler-aws-lambda-basic-execution", var.resource_name_prefix) : format("%s%slambda-scheduler-aws-lambda-basic-execution", var.iam_policy_prefix, var.resource_name_prefix)
   path        = "/"
   description = "AWSLambdaBasicExecutionRole"
 
@@ -96,8 +102,9 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "basic-exec-role" {
-  role       = aws_iam_role.scheduler_lambda.name
-  policy_arn = aws_iam_policy.scheduler_aws_lambda_basic_execution_role.arn
+  count      = var.create ? 1 : 0
+  role       = aws_iam_role.scheduler_lambda[0].name
+  policy_arn = aws_iam_policy.scheduler_aws_lambda_basic_execution_role[0].arn
 }
 
 # AWS Lambda need a zip file
@@ -109,9 +116,10 @@ data "archive_file" "aws-scheduler" {
 
 # AWS Lambda function
 resource "aws_lambda_function" "scheduler_lambda" {
+  count            = var.create ? 1 : 0
   filename         = data.archive_file.aws-scheduler.output_path
-  function_name    = "${var.resource_name_prefix}aws-scheduler"
-  role             = aws_iam_role.scheduler_lambda.arn
+  function_name    = var.lambda_function_prefix == null ? format("%saws-scheduler", var.resource_name_prefix) : format("%s%saws-scheduler", var.lambda_function_prefix, var.resource_name_prefix)
+  role             = aws_iam_role.scheduler_lambda[0].arn
   handler          = "aws-scheduler.handler"
   runtime          = "python3.7"
   timeout          = 300
@@ -123,20 +131,21 @@ resource "aws_lambda_function" "scheduler_lambda" {
   environment {
     variables = {
       TAG                = var.tag
-      SCHEDULE_TAG_FORCE = var.schedule_tag_force
+      SCHEDULE_TAG_FORCE = var.schedule_tag_force ? "true" : "false"
       EXCLUDE            = var.exclude
       DEFAULT            = var.default
       TIME               = var.time
-      RDS_SCHEDULE       = var.rds_schedule
-      EC2_SCHEDULE       = var.ec2_schedule
+      RDS_SCHEDULE       = var.rds_schedule ? "true" : "false"
+      EC2_SCHEDULE       = var.ec2_schedule ? "true" : "false"
     }
   }
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_scheduler" {
+  count         = var.create ? 1 : 0
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.scheduler_lambda.function_name
+  function_name = aws_lambda_function.scheduler_lambda[0].function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.check-scheduler-event.arn
+  source_arn    = aws_cloudwatch_event_rule.check-scheduler-event[0].arn
 }
