@@ -77,6 +77,12 @@ variable "cloudwatch_event_rule_prefix" {
   description = "a prefix to apply to cloudwatch event rule resources."
 }
 
+variable "cloudwatch_loggroup_retention" {
+  type        = number
+  default     = 14
+  description = "number of days to keep the logs"
+}
+
 variable "iam_role_prefix" {
   type        = string
   default     = null

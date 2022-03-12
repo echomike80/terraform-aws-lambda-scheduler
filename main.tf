@@ -1,3 +1,7 @@
+locals {
+  lambda_function_name = var.lambda_function_prefix == null ? format("%saws-scheduler", var.resource_name_prefix) : format("%s%saws-scheduler", var.lambda_function_prefix, var.resource_name_prefix)
+}
+
 # Cloudwatch event rule
 resource "aws_cloudwatch_event_rule" "check-scheduler-event" {
   count               = var.create ? 1 : 0
@@ -139,6 +143,12 @@ resource "aws_lambda_function" "scheduler_lambda" {
       EC2_SCHEDULE       = var.ec2_schedule ? "true" : "false"
     }
   }
+}
+
+resource "aws_cloudwatch_log_group" "scheduler_lambda" {
+  count             = var.create ? 1 : 0
+  name              = format("/aws/lambda/%s", local.lambda_function_name)
+  retention_in_days = var.cloudwatch_loggroup_retention
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_scheduler" {
