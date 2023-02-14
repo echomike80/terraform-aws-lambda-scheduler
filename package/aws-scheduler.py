@@ -172,8 +172,9 @@ def check():
             logger.error('Invalid time timezone string value \"%s\", please check!' %(time_zone))
             raise ValueError('Invalid time timezone string value')
 
-    started = []
-    stopped = []
+    started     = []
+    stopped     = []
+    rebooted    = []
 
     schedule_tag = os.getenv('TAG', 'schedule')
     logger.info("-----> schedule tag is called \"%s\"", schedule_tag)
@@ -201,6 +202,16 @@ def check():
                     ec2.instances.filter(InstanceIds=[instance.id]).start()
             except Exception as e:
                 logger.error("Error checking start time : %s" % e)
+                pass
+
+            try:
+                if checkdate(data, 'reboot', day, hh) and instance.state["Name"] == 'running':
+
+                    logger.info("Rebooting EC2 instance \"%s\"." %(instance.id))
+                    rebooted.append(instance.id)
+                    ec2.instances.filter(InstanceIds=[instance.id]).reboot()
+            except Exception as e:
+                logger.error("Error checking reboot time : %s" % e)
                 pass
 
             try:

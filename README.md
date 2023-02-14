@@ -1,14 +1,17 @@
 # terraform-aws-lambda-scheduler
-Stop and start EC2 and RDS instances according to schedule via lambda and terraform.
+Reboot, stop and start EC2 and stop and start RDS instances according to schedule via lambda and terraform.
 
 # Overview
 
 The scheduler looks at the schedule tag to see if it needs to stop or start and instance.
-It works by setting a tag (default name schedule) to a string giving the stop and start time hour for each day.
+It works by setting a tag (default name schedule) to a string giving the reboot, stop and start time hour for each day.
 
 A schedule tag for an EC2 instance is json and looks like:
 ```json
 {"mon": {"start": 7, "stop": 19},"tue": {"start": 7, "stop": 19},"wed": {"start": [9, 22], "stop": 19},"thu": {"start": 7, "stop": [2,19]}, "fri": {"start": 7, "stop": 19}, "sat": {"start": 22}, "sun": {"stop": 7}}
+```
+```json
+{"daily": {"reboot": 6}}
 ```
 If you want to handle multiple stop/starts per day, you will need to pass a list in square brackets in the start/stop schedule.
 

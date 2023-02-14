@@ -46,11 +46,15 @@ data "aws_iam_policy_document" "ec2-access-scheduler" {
   statement {
     actions = [
       "ec2:DescribeInstances",
+      "ec2:RebootInstances",
       "ec2:StopInstances",
       "ec2:StartInstances",
       "ec2:CreateTags",
       "rds:DescribeDBInstances",
       "rds:DescribeDBClusters",
+      ## not yet implemented in lambda function
+      # "rds:RebootDBCluster",
+      # "rds:RebootDBInstance",
       "rds:StartDBInstance",
       "rds:StopDBInstance",
       "rds:ListTagsForResource",
@@ -149,6 +153,7 @@ resource "aws_cloudwatch_log_group" "scheduler_lambda" {
   count             = var.create ? 1 : 0
   name              = format("/aws/lambda/%s", local.lambda_function_name)
   retention_in_days = var.cloudwatch_loggroup_retention
+  kms_key_id        = var.cloudwatch_loggroup_kms_key_arn != null ? var.cloudwatch_loggroup_kms_key_arn : null
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_scheduler" {

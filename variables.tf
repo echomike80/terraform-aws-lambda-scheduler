@@ -77,6 +77,12 @@ variable "cloudwatch_event_rule_prefix" {
   description = "a prefix to apply to cloudwatch event rule resources."
 }
 
+variable "cloudwatch_loggroup_kms_key_arn" {
+  description = "KMS key id for encrypting the logging destination"
+  type        = string
+  default     = null
+}
+
 variable "cloudwatch_loggroup_retention" {
   type        = number
   default     = 14

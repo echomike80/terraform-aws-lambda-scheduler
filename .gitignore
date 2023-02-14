@@ -1,2 +1,2 @@
 .terraform
-# *.zip .. ZIP File aws-scheduler.zip will be pushed into Git to prevent ZIP file generation every time when initializing module and having another source_code_hash
+*.zip
